@@ -1,0 +1,11 @@
+/bin/
+/coverage.out
+/.env
+/.env.*
+!/.env.example
+**/.env
+**/.env.*
+!**/.env.example
+/data/
+*.log
+.DS_Store
