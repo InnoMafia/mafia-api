@@ -1,4 +1,4 @@
-package httpapi
+package handler
 
 import (
 	"context"
@@ -11,6 +11,7 @@ import (
 	"time"
 
 	platformv1 "github.com/InnoMafia/mafia-api/gen/go/mafia/platform/v1"
+	"github.com/InnoMafia/mafia-api/internal/usecase"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
@@ -104,10 +105,17 @@ func startTestServer(t *testing.T, ping func(context.Context) error) (http.Handl
 	}
 	t.Cleanup(func() { _ = conn.Close() })
 
-	handler, err := New(t.Context(), rpc, conn, ping)
+	getServiceStatus := usecase.NewGetServiceStatus(statusRepositoryFunc(ping))
+	handler, err := New(t.Context(), rpc, conn, getServiceStatus)
 	if err != nil {
 		t.Fatal(err)
 	}
 	go func() { _ = rpc.Serve(listener) }()
 	return handler, platformv1.NewPlatformServiceClient(conn)
+}
+
+type statusRepositoryFunc func(context.Context) error
+
+func (f statusRepositoryFunc) Ping(ctx context.Context) error {
+	return f(ctx)
 }

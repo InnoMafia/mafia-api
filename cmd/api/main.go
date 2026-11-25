@@ -12,8 +12,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/InnoMafia/mafia-api/internal/httpapi"
-	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/InnoMafia/mafia-api/internal/handler"
+	"github.com/InnoMafia/mafia-api/internal/repository/postgres"
+	"github.com/InnoMafia/mafia-api/internal/usecase"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -34,12 +35,13 @@ func run(ctx context.Context, logger *slog.Logger) error {
 	if databaseURL == "" {
 		return errors.New("DATABASE_URL is required")
 	}
-	db, err := pgxpool.New(ctx, databaseURL)
+	database, err := postgres.Open(ctx, databaseURL)
 	if err != nil {
-		// A connection parsing error can include credentials.
-		return errors.New("DATABASE_URL could not be parsed")
+		return err
 	}
-	defer db.Close()
+	defer database.Close()
+
+	getServiceStatus := usecase.NewGetServiceStatus(database)
 
 	grpcAddr := os.Getenv("GRPC_ADDR")
 	if grpcAddr == "" {
@@ -67,7 +69,7 @@ func run(ctx context.Context, logger *slog.Logger) error {
 
 	rpc := grpc.NewServer()
 	defer rpc.Stop()
-	handler, err := httpapi.New(ctx, rpc, conn, db.Ping)
+	routes, err := handler.New(ctx, rpc, conn, getServiceStatus)
 	if err != nil {
 		return fmt.Errorf("register HTTP gateway: %w", err)
 	}
@@ -78,7 +80,7 @@ func run(ctx context.Context, logger *slog.Logger) error {
 	}
 	server := &http.Server{
 		Addr:              httpAddr,
-		Handler:           handler,
+		Handler:           routes,
 		ReadHeaderTimeout: 5 * time.Second,
 		IdleTimeout:       time.Minute,
 	}

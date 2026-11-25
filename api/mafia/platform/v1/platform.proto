@@ -3,6 +3,7 @@ syntax = "proto3";
 package mafia.platform.v1;
 
 import "google/api/annotations.proto";
+import "mafia/platform/v1/get_service_status.proto";
 
 option go_package = "github.com/InnoMafia/mafia-api/gen/go/mafia/platform/v1;platformv1";
 
@@ -12,11 +13,4 @@ service PlatformService {
   rpc GetServiceStatus(GetServiceStatusRequest) returns (GetServiceStatusResponse) {
     option (google.api.http) = {get: "/api/v1/status"};
   }
-}
-
-message GetServiceStatusRequest {}
-
-message GetServiceStatusResponse {
-  // The value is "ready" when the platform is accepting requests.
-  string status = 1;
 }

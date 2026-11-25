@@ -1,17 +1,15 @@
-package httpapi
+package handler
 
 import (
 	"context"
 	_ "embed"
 	"io"
 	"net/http"
-	"time"
 
 	platformv1 "github.com/InnoMafia/mafia-api/gen/go/mafia/platform/v1"
+	"github.com/InnoMafia/mafia-api/internal/usecase"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 //go:embed openapi/mafia/platform/v1/platform.openapi.json
@@ -19,11 +17,11 @@ var openAPI string
 
 type service struct {
 	platformv1.UnimplementedPlatformServiceServer
-	ping func(context.Context) error
+	getServiceStatus *usecase.GetServiceStatus
 }
 
-func New(ctx context.Context, rpc *grpc.Server, conn *grpc.ClientConn, ping func(context.Context) error) (http.Handler, error) {
-	api := &service{ping: ping}
+func New(ctx context.Context, rpc *grpc.Server, conn *grpc.ClientConn, getServiceStatus *usecase.GetServiceStatus) (http.Handler, error) {
+	api := &service{getServiceStatus: getServiceStatus}
 	platformv1.RegisterPlatformServiceServer(rpc, api)
 
 	gateway := runtime.NewServeMux()
@@ -36,7 +34,7 @@ func New(ctx context.Context, rpc *grpc.Server, conn *grpc.ClientConn, ping func
 		w.WriteHeader(http.StatusNoContent)
 	})
 	mux.HandleFunc("GET /readyz", func(w http.ResponseWriter, r *http.Request) {
-		if !api.ready(r.Context()) {
+		if !getServiceStatus.Execute(r.Context()) {
 			w.WriteHeader(http.StatusServiceUnavailable)
 			return
 		}
@@ -52,17 +50,4 @@ func New(ctx context.Context, rpc *grpc.Server, conn *grpc.ClientConn, ping func
 		w.Header().Set("Cache-Control", "no-store")
 		mux.ServeHTTP(w, r)
 	}), nil
-}
-
-func (s *service) ready(ctx context.Context) bool {
-	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
-	defer cancel()
-	return s.ping(ctx) == nil
-}
-
-func (s *service) GetServiceStatus(ctx context.Context, _ *platformv1.GetServiceStatusRequest) (*platformv1.GetServiceStatusResponse, error) {
-	if !s.ready(ctx) {
-		return nil, status.Error(codes.Unavailable, "database unavailable")
-	}
-	return &platformv1.GetServiceStatusResponse{Status: "ready"}, nil
 }

@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package mafia.platform.v1;
+
+option go_package = "github.com/InnoMafia/mafia-api/gen/go/mafia/platform/v1;platformv1";
+
+message GetServiceStatusRequest {}
+
+message GetServiceStatusResponse {
+  // The value is "ready" when the platform is accepting requests.
+  string status = 1;
+}
