@@ -24,7 +24,7 @@ jobs:
       - name: Verify generated RPC, gateway and OpenAPI
         run: |
           make generate
-          git diff --exit-code -- gen/go internal/handler/openapi
-          test -z "$(git ls-files --others --exclude-standard -- gen/go internal/handler/openapi)"
+          git diff --exit-code -- gen
+          test -z "$(git ls-files --others --exclude-standard -- gen)"
       - run: make check
       - run: docker build .

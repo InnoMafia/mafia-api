@@ -2,18 +2,15 @@ package handler
 
 import (
 	"context"
-	_ "embed"
 	"io"
 	"net/http"
 
+	"github.com/InnoMafia/mafia-api"
 	platformv1 "github.com/InnoMafia/mafia-api/gen/go/mafia/platform/v1"
 	"github.com/InnoMafia/mafia-api/internal/usecase"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
 )
-
-//go:embed openapi/mafia/platform/v1/platform.openapi.json
-var openAPI string
 
 type service struct {
 	platformv1.UnimplementedPlatformServiceServer
@@ -42,7 +39,7 @@ func New(ctx context.Context, rpc *grpc.Server, conn *grpc.ClientConn, getServic
 	})
 	mux.HandleFunc("GET /api/openapi.json", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		_, _ = io.WriteString(w, openAPI)
+		_, _ = io.WriteString(w, mafiaapi.OpenAPI())
 	})
 	mux.Handle("/api/", gateway)
 

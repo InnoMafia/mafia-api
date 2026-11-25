@@ -28,17 +28,18 @@ DATABASE_URL='postgresql://localhost/mafia' go run ./cmd/api
 
 ## Контракт
 
-Файл сервиса [platform.proto](api/mafia/platform/v1/platform.proto) объявляет
-RPC и их HTTP-привязки `google.api.http`. Типы запроса и ответа каждого
-метода лежат в своём `.proto`, а реализация метода — в своём Go-файле.
-Например, у `GetServiceStatus` это [get_service_status.proto](api/mafia/platform/v1/get_service_status.proto)
-и [get_service_status.go](internal/handler/get_service_status.go).
+Для каждого сервиса в `api/` есть один `.proto` с RPC, типами запросов и ответов
+и HTTP-привязками `google.api.http`. [Пример контракта](api/mafia/platform/v1/platform.proto)
 
-`make generate` запускает Buf и обновляет:
+У каждого RPC свой Go-файл в `internal/handler`. Код, который дописывает
+разработчик, хранится в исходниках соответствующего слоя.
+[Пример обработчика](internal/handler/get_service_status.go)
+
+`make generate` запускает Buf и обновляет файлы в `gen/`.
 
 - Go-сообщения и gRPC-клиент/сервер в `gen/go`;
 - HTTP/JSON-шлюз на gRPC-Gateway в `gen/go`;
-- OpenAPI 3.1 в `internal/handler/openapi`.
+- OpenAPI 3.1 в `gen/openapi`.
 
 Сервер отдаёт документ по `GET /api/openapi.json`. Веб-клиент генерирует
 TypeScript-типы из этого артефакта. CI регенерирует файлы и сравнивает их

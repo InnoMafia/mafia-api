@@ -4,6 +4,7 @@ COPY go.mod go.sum ./
 RUN --mount=type=secret,id=build_ca \
     if [ -s /run/secrets/build_ca ]; then export SSL_CERT_FILE=/run/secrets/build_ca; fi; \
     go mod download
+COPY openapi.go ./
 COPY cmd ./cmd
 COPY internal ./internal
 COPY gen ./gen
