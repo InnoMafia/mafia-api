@@ -28,7 +28,7 @@ DATABASE_URL='postgresql://localhost/mafia' go run ./cmd/api
 
 ## Контракт
 
-Исходный контракт — [platform.proto](proto/mafia/platform/v1/platform.proto).
+Исходный контракт — [platform.proto](api/mafia/platform/v1/platform.proto).
 Аннотация `google.api.http` связывает RPC с методом и путём HTTP.
 `make generate` запускает Buf и обновляет:
 
