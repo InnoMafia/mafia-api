@@ -18,6 +18,13 @@ jobs:
       - uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
         with:
           go-version-file: go.mod
-      - run: make generate && git diff --exit-code -- internal/httpapi/contract
+      - uses: bufbuild/buf-setup-action@a47c93e0b1648d5651a065437926377d060baa99 # v1.50.0
+        with:
+          version: 1.75.0
+      - name: Verify generated RPC, gateway and OpenAPI
+        run: |
+          make generate
+          git diff --exit-code -- gen/go internal/httpapi/openapi
+          test -z "$(git ls-files --others --exclude-standard -- gen/go internal/httpapi/openapi)"
       - run: make check
       - run: docker build .

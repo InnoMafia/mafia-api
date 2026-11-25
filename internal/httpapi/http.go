@@ -2,19 +2,35 @@ package httpapi
 
 import (
 	"context"
+	_ "embed"
+	"io"
 	"net/http"
 	"time"
 
-	"github.com/InnoMafia/mafia-api/internal/httpapi/contract"
+	platformv1 "github.com/InnoMafia/mafia-api/gen/go/mafia/platform/v1"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
+//go:embed openapi/mafia/platform/v1/platform.openapi.json
+var openAPI string
+
 type service struct {
+	platformv1.UnimplementedPlatformServiceServer
 	ping func(context.Context) error
 }
 
-func New(ping func(context.Context) error) http.Handler {
-	api := service{ping: ping}
-	versioned := contract.HandlerWithOptions(contract.NewStrictHandler(api, nil), contract.ChiServerOptions{})
+func New(ctx context.Context, rpc *grpc.Server, conn *grpc.ClientConn, ping func(context.Context) error) (http.Handler, error) {
+	api := &service{ping: ping}
+	platformv1.RegisterPlatformServiceServer(rpc, api)
+
+	gateway := runtime.NewServeMux()
+	if err := platformv1.RegisterPlatformServiceHandler(ctx, gateway, conn); err != nil {
+		return nil, err
+	}
+
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusNoContent)
@@ -26,23 +42,27 @@ func New(ping func(context.Context) error) http.Handler {
 		}
 		w.WriteHeader(http.StatusNoContent)
 	})
-	mux.Handle("/api/v1/", versioned)
+	mux.HandleFunc("GET /api/openapi.json", func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = io.WriteString(w, openAPI)
+	})
+	mux.Handle("/api/", gateway)
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "no-store")
 		mux.ServeHTTP(w, r)
-	})
+	}), nil
 }
 
-func (s service) ready(ctx context.Context) bool {
+func (s *service) ready(ctx context.Context) bool {
 	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
 	defer cancel()
 	return s.ping(ctx) == nil
 }
 
-func (s service) GetServiceStatus(ctx context.Context, _ contract.GetServiceStatusRequestObject) (contract.GetServiceStatusResponseObject, error) {
-	if s.ready(ctx) {
-		return contract.GetServiceStatus200JSONResponse{Status: contract.Ready}, nil
+func (s *service) GetServiceStatus(ctx context.Context, _ *platformv1.GetServiceStatusRequest) (*platformv1.GetServiceStatusResponse, error) {
+	if !s.ready(ctx) {
+		return nil, status.Error(codes.Unavailable, "database unavailable")
 	}
-	return contract.GetServiceStatus503JSONResponse{Status: contract.Unavailable}, nil
+	return &platformv1.GetServiceStatusResponse{Status: "ready"}, nil
 }

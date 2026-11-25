@@ -1,10 +1,14 @@
+BUF ?= buf
+
 .PHONY: check generate
 
 generate:
-	go tool oapi-codegen --config api/codegen.yaml api/openapi.yaml
+	$(BUF) generate
 
 check:
-	test -z "$$(gofmt -l cmd internal)"
+	$(BUF) lint
+	$(BUF) format --diff --exit-code
+	test -z "$$(gofmt -l cmd internal gen)"
 	go vet ./...
 	go test -race ./...
 	go build ./...

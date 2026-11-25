@@ -6,6 +6,7 @@ RUN --mount=type=secret,id=build_ca \
     go mod download
 COPY cmd ./cmd
 COPY internal ./internal
+COPY gen ./gen
 RUN CGO_ENABLED=0 go build -trimpath -o /out/api ./cmd/api
 
 FROM scratch
@@ -13,6 +14,6 @@ LABEL org.opencontainers.image.source="https://github.com/InnoMafia/mafia-api"
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder /out/api /api
 USER 65532:65532
-ENV HTTP_ADDR=:8080
-EXPOSE 8080
+ENV HTTP_ADDR=:8080 GRPC_ADDR=0.0.0.0:9090
+EXPOSE 8080 9090
 ENTRYPOINT ["/api"]
