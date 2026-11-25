@@ -1,0 +1,6 @@
+package: contract
+generate:
+  models: true
+  chi-server: true
+  strict-server: true
+output: internal/httpapi/contract/api.gen.go
