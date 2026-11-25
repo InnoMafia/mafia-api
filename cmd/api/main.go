@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"github.com/InnoMafia/mafia-api/internal/handler"
-	"github.com/InnoMafia/mafia-api/internal/repository/postgres"
+	"github.com/InnoMafia/mafia-api/internal/repository"
 	"github.com/InnoMafia/mafia-api/internal/usecase"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -35,7 +35,7 @@ func run(ctx context.Context, logger *slog.Logger) error {
 	if databaseURL == "" {
 		return errors.New("DATABASE_URL is required")
 	}
-	database, err := postgres.Open(ctx, databaseURL)
+	database, err := repository.Open(ctx, databaseURL)
 	if err != nil {
 		return err
 	}
