@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package mafia.platform.v1;
+
+import "google/api/annotations.proto";
+
+option go_package = "github.com/InnoMafia/mafia-api/gen/go/mafia/platform/v1;platformv1";
+
+// PlatformService provides information about the InnoMafia installation.
+service PlatformService {
+  // Reports platform availability. An unavailable database returns UNAVAILABLE (HTTP 503).
+  rpc GetServiceStatus(GetServiceStatusRequest) returns (GetServiceStatusResponse) {
+    option (google.api.http) = {get: "/api/v1/status"};
+  }
+}
+
+message GetServiceStatusRequest {}
+
+message GetServiceStatusResponse {
+  // The value is "ready" when the platform is accepting requests.
+  string status = 1;
+}
