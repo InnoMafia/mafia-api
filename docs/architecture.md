@@ -11,8 +11,10 @@ openapi.go
 internal/
   handler/
     http.go
-    get_service_status.go
     http_test.go
+    platform/
+      service.go
+      get_service_status.go
   usecase/
     get_service_status.go
   repository/
@@ -33,8 +35,10 @@ internal/
 ### Обработчики
 
 `internal/handler/http.go` регистрирует gRPC-сервисы и HTTP-шлюз, а также
-подключает служебные HTTP-маршруты. Каждый RPC реализован в отдельном
-Go-файле с именем метода в `snake_case`.
+подключает служебные HTTP-маршруты. Каждый Protobuf-сервис имеет свой
+пакет в `internal/handler/`. В папке сервиса `service.go` содержит тип
+сервиса и его конструктор. Каждый RPC реализован в отдельном Go-файле
+с именем метода в `snake_case`.
 
 Обработчик преобразует запрос транспорта во входные данные юзкейса, вызывает
 юзкейс и преобразует результат или ошибку в ответ транспорта.
@@ -63,8 +67,9 @@ gRPC       → обработчик → юзкейс → интерфейс ре
 HTTP/JSON  → grpc-gateway → тот же gRPC-обработчик
 ```
 
-Текущий `GetServiceStatus` показывает этот путь. Обработчик и юзкейс находятся
-в отдельных файлах `get_service_status.go` в своих пакетах. Юзкейс вызывает
+Вызов `GetServiceStatus` проходит через обработчик в
+`internal/handler/platform/get_service_status.go` и юзкейс в
+`internal/usecase/get_service_status.go`. Юзкейс вызывает
 `StatusRepository.Ping`, который реализует `Database` из репозитория.
 
 ## Генерация и тесты

@@ -7,19 +7,14 @@ import (
 
 	"github.com/InnoMafia/mafia-api"
 	platformv1 "github.com/InnoMafia/mafia-api/gen/go/mafia/platform/v1"
+	"github.com/InnoMafia/mafia-api/internal/handler/platform"
 	"github.com/InnoMafia/mafia-api/internal/usecase"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
 )
 
-type service struct {
-	platformv1.UnimplementedPlatformServiceServer
-	getServiceStatus *usecase.GetServiceStatus
-}
-
 func New(ctx context.Context, rpc *grpc.Server, conn *grpc.ClientConn, getServiceStatus *usecase.GetServiceStatus) (http.Handler, error) {
-	api := &service{getServiceStatus: getServiceStatus}
-	platformv1.RegisterPlatformServiceServer(rpc, api)
+	platformv1.RegisterPlatformServiceServer(rpc, platform.New(getServiceStatus))
 
 	gateway := runtime.NewServeMux()
 	if err := platformv1.RegisterPlatformServiceHandler(ctx, gateway, conn); err != nil {

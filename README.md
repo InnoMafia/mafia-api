@@ -31,9 +31,10 @@ DATABASE_URL='postgresql://localhost/mafia' go run ./cmd/api
 Для каждого сервиса в `api/` есть один `.proto` с RPC, типами запросов и ответов
 и HTTP-привязками `google.api.http`. [Пример контракта](api/mafia/platform/v1/platform.proto)
 
-У каждого RPC свой Go-файл в `internal/handler`. Код, который дописывает
-разработчик, хранится в исходниках соответствующего слоя.
-[Пример обработчика](internal/handler/get_service_status.go)
+У каждого Protobuf-сервиса своя папка в `internal/handler/`, у каждого RPC
+свой Go-файл в этой папке. Код, который дописывает разработчик, хранится
+в исходниках соответствующего слоя.
+[Пример обработчика](internal/handler/platform/get_service_status.go)
 
 `make generate` запускает Buf и обновляет файлы в `gen/`.
 

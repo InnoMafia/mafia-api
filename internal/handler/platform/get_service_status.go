@@ -1,4 +1,4 @@
-package handler
+package platform
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func (s *service) GetServiceStatus(ctx context.Context, _ *platformv1.GetServiceStatusRequest) (*platformv1.GetServiceStatusResponse, error) {
+func (s *Service) GetServiceStatus(ctx context.Context, _ *platformv1.GetServiceStatusRequest) (*platformv1.GetServiceStatusResponse, error) {
 	if !s.getServiceStatus.Execute(ctx) {
 		return nil, status.Error(codes.Unavailable, "database unavailable")
 	}
