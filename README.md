@@ -52,5 +52,5 @@ buf curl --reflect=false --schema . --protocol grpc \
   http://127.0.0.1:9090/mafia.platform.v1.PlatformService/GetServiceStatus
 ```
 
-Первый продуктовый сценарий и границы клубных данных описаны в
-[архитектуре](docs/architecture.md).
+Структура каталогов и связи между пакетами описаны в
+[архитектуре API](docs/architecture.md).
