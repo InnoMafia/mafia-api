@@ -42,9 +42,12 @@ DATABASE_URL='postgresql://localhost/mafia' go run ./cmd/api
 - HTTP/JSON-шлюз на gRPC-Gateway в `gen/go`;
 - OpenAPI 3.1 в `gen/openapi`.
 
-Сервер отдаёт документ по `GET /api/openapi.json`. Веб-клиент генерирует
-TypeScript-типы из этого артефакта. CI регенерирует файлы и сравнивает их
-с коммитом.
+Сервер отдаёт документ по `GET /api/openapi.json`. Swagger UI читает его по
+тому же адресу. После локального запуска через Compose страница доступна по
+[http://127.0.0.1:8787/api/docs/](http://127.0.0.1:8787/api/docs/).
+
+Веб-клиент генерирует TypeScript-типы из этого артефакта. CI регенерирует
+файлы и сравнивает их с коммитом.
 
 ```bash
 curl --fail http://127.0.0.1:8080/api/v1/status

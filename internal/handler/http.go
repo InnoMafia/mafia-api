@@ -10,6 +10,7 @@ import (
 	"github.com/InnoMafia/mafia-api/internal/handler/platform"
 	"github.com/InnoMafia/mafia-api/internal/usecase"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/swaggest/swgui/v5emb"
 	"google.golang.org/grpc"
 )
 
@@ -32,10 +33,13 @@ func New(ctx context.Context, rpc *grpc.Server, conn *grpc.ClientConn, getServic
 		}
 		w.WriteHeader(http.StatusNoContent)
 	})
-	mux.HandleFunc("GET /api/openapi.json", func(w http.ResponseWriter, _ *http.Request) {
+	const openAPIPath = "/api/openapi.json"
+	mux.HandleFunc("GET "+openAPIPath, func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = io.WriteString(w, mafiaapi.OpenAPI())
 	})
+	const docsPath = "/api/docs/"
+	mux.Handle("GET "+docsPath, v5emb.New("InnoMafia API", openAPIPath, docsPath))
 	mux.Handle("/api/", gateway)
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
